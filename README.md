@@ -1,12 +1,25 @@
-# kaamsaathi-
-KaamSaathi is an  platform designed specifically to provide a voice to low literacy worker's. informal workers frequently depend on uncertain word-of-mouth networks and lack transparent wage information or portable work records. KaamSaathi addresses this by replacing text-heavy job portals with speech, audio, and icon-based interactions.
-# KaamSaathi — All Deliverables
+# KaamSaathi ML service (pretrained models)
 
-| Folder | What it is |
-|---|---|
-| `01-html-prototype/` | Clickable single-file HTML/JS demo — open `index.html` |
-| `02-brag-video/` | 24.5s MP4 showcase reel |
-| `03-flutter-starter/` | Dart source + setup guide for the real Flutter app |
-| `04-ml-service/` | FastAPI server using pretrained models (Whisper ASR + multilingual embeddings) |
+No training. Models download once on first run (~600 MB total), then run on CPU.
 
-Order: run `04-ml-service` first (see its README), then the Flutter app.
+```bash
+python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+uvicorn main:app --host 0.0.0.0 --port 8000
+```
+
+Test: open http://localhost:8000/docs
+
+| Endpoint | In | Out |
+|---|---|---|
+| POST /asr | wav file + `lang` (hi/en) | transcript |
+| POST /intent | `{"text": "..."}` | trade, confidence, years, jobs, tools |
+| POST /rank | `{"text", "jobs":[{id,title}]}` | jobs sorted by relevance |
+
+## Speed tips
+- `ASR_MODEL=base` (or `tiny`) for faster ASR, `small` for better Hindi accuracy.
+- Models load once at startup — keep the server running, don't restart per request.
+- On a phone, use the Flutter app's on-device `speech_to_text` for the transcript
+  and call only `/intent` (milliseconds). Use `/asr` as fallback.
+- Optional: swap in Bhashini / AI4Bharat IndicConformer (hosted, needs free API key)
+  inside `/asr` for best Indian-language accuracy.
